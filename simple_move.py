@@ -37,9 +37,10 @@ class ControlWheelchair():
                 break
     def go_goal(self):
         self.move_cmd.linear.x = 0.2
-        for i in range(68):
+        for i in range(71):
             self.cmd_vel.publish(self.move_cmd)
             self.rate.sleep()
+        self.cmd_vel.publish(Twist())
         self.task = "stop"
     def stop(self):
         self.move_cmd.linear.x = 0
@@ -49,9 +50,10 @@ class ControlWheelchair():
         self.task = "go_home"
     def go_home(self):
         self.move_cmd.linear.x = -0.2
-        for i in range(65):
+        for i in range(69):
             self.cmd_vel.publish(self.move_cmd)
             self.rate.sleep()
+        self.cmd_vel.publish(Twist())
         self.task = "exit"
         self.shutdown()
             

@@ -8,7 +8,7 @@ import rospy
 from geometry_msgs.msg import Twist
 
 import sys, select, termios, tty
-
+from vision import get_obj2w
 class ControlWheelchair():
     def __init__(self):
         rospy.init_node('Controlwheelchair',anonymous=False)
@@ -46,6 +46,9 @@ class ControlWheelchair():
         self.move_cmd.linear.x = 0
         for i in  range(60):
             self.cmd_vel.publish(self.move_cmd)
+            self.rate.sleep()
+        for i in  range(60):
+            print(get_obj2w())
             self.rate.sleep()
         self.task = "go_home"
     def go_home(self):

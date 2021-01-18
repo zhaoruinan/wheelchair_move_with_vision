@@ -6,7 +6,6 @@ import copy
 import threading
 from datetime import datetime
 import sys, time
-import keyboard
 from threading import Timer
 import math
 #from numpy import cross, eye, dot
@@ -53,9 +52,10 @@ def rotation_matrix(axis, theta):
 
 
 class obj():
-    def __init__(self,num1,num2):
+    def __init__(self,num1,num2,num3):
         self.aruco_num1 = num1
         self.aruco_num2 = num2
+        self.aruco_num3 = num3
         self.in_camera = False
         self.xyz1 = None
         self.xyz2 = None
@@ -91,8 +91,8 @@ class obj():
 
         #print(RT)
         #print(o2w)
-        o_Q3 =  = np.asarray(self.xyz3)
-        axis_x_o = unit_vector( o_Q2 - w_Q3 )
+        o_Q3 = np.asarray(self.xyz3)
+        axis_x_o = unit_vector( o_Q2 - o_Q3 )
         axis_z_o = unit_vector( o_Q2 - o_Q1 )
         axis_y_o = np.cross(axis_x_o, axis_z_o)
         RT_o = np.array([axis_x_o, axis_y_o, axis_z_o])
@@ -100,14 +100,17 @@ class obj():
         RT_o_i = np.linalg.inv(RT_o)
 
         o_axis = o_Q3.dot(RT_o_i)
-        o_axis[1] = o_axis[1] - 0.2
+        #print(o_axis)
+        #print("MOVE",o_axis[0,1])
+        o_axis[0,1] = o_axis[0,1] + 0.2
 
-        obj_c = o_axis,dot(RT_o)
+        obj_c = o_axis.dot(RT_o)
 
         obj_w = obj_c - w_Q2
 
         obj2w = obj_w.dot(RT_i)
         print(obj2w)
+        return obj2w
 
 
 
@@ -166,6 +169,38 @@ def process_data(ids,rotation_mat):
             #send_data.double6dArr[index] = rotation_mat[i,j]
 #send_data.double6dArr[10]=rotation_mat(0, 1)
 
+def aruco_fun_compute():
+    global pipe
+    axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+    frames = pipe.wait_for_frames()
+    align_to = rs.stream.color
+    align = rs.align(align_to)
+    aligned_frames = align.process(frames)
+    depth_frame = aligned_frames.get_depth_frame()
+    color_frame = aligned_frames.get_color_frame()
+    color_img = np.array(color_frame.get_data())
+    color_img_temp = copy.deepcopy(color_img)
+    depth_img = np.array(depth_frame.get_data())
+    frame = color_img_temp 
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
+    parameters =  aruco.DetectorParameters_create()
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+    wheelchair = Wheelchair()
+    obj1 = obj(5,6,11)
+
+    if ids is not None and len(ids) > 0:
+        wheelchair.wheelchair_dec(ids,corners,depth_img)
+        obj1.obj_dec(ids,corners,depth_img)
+
+    if wheelchair.in_camera and obj1.in_camera:
+        print("let us see the distance in camera")
+        return obj1.compute_obj2wheelchair_base(wheelchair)
+    return [0.0,0.0,0.0]
+
+
+
 def aruco_fun():
     global pipe
     axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
@@ -212,14 +247,14 @@ def aruco_fun():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
         #break
-class RepeatingTimer(Timer): 
-    def run(self):
-        while not self.finished.is_set():
-            self.function(*self.args, **self.kwargs)
-            self.finished.wait(self.interval)
-def main():
+# class RepeatingTimer(Timer): 
+#     def run(self):
+#         while not self.finished.is_set():
+#             self.function(*self.args, **self.kwargs)
+#             self.finished.wait(self.interval)
+def get_obj2w():
     aruco_init()
-    t_aruco = RepeatingTimer(0.2, aruco_fun)
-    t_aruco.start()
+    return aruco_fun_compute()
+
 #if __name__ =='__main__':
-main()
+#main()

@@ -59,6 +59,7 @@ class obj():
         self.in_camera = False
         self.xyz1 = None
         self.xyz2 = None
+        self.xyz3 = None
     def obj_dec(self,ids,corners,depth_img):
         for id in range(len(ids)):
             if ids[id] == self.aruco_num1:
@@ -67,6 +68,8 @@ class obj():
                 #print("obj",self.aruco_num,"xyz=",self.xyz)
             if ids[id] == self.aruco_num2:
                 self.xyz2 = get_xyz(corners[id], depth_img)
+            if ids[id] == self.aruco_num3:
+                self.xyz3 = get_xyz(corners[id], depth_img)
                 #self.in_camera = True
                 #print("obj",self.aruco_num,"xyz=",self.xyz)
             
@@ -75,19 +78,38 @@ class obj():
         w_Q2 = np.asarray(wheelchair.num_xyz['num2'])
         o_Q1 = np.asarray(self.xyz1)
         o_Q2 = np.asarray(self.xyz2)
-        print(w_Q1,"\n",w_Q2,"\n",o_Q1,"\n",o_Q2)
+        #print(w_Q1,"\n",w_Q2,"\n",o_Q1,"\n",o_Q2)
         axis_x_c = unit_vector( w_Q2 - w_Q1 )
         axis_z_c = unit_vector( o_Q2 - o_Q1 )
         axis_y_c = np.cross(axis_x_c, axis_z_c)
-        print("axis",axis_x_c, axis_y_c, axis_z_c)
+        #print("axis",axis_x_c, axis_y_c, axis_z_c)
         RT = np.array([axis_x_c, axis_y_c, axis_z_c])
         RT = np.asmatrix(RT)
-        RT = np.linalg.inv(RT)
+        RT_i = np.linalg.inv(RT)
         o2w = o_Q2 - w_Q2
-        o2w = o2w.dot(RT)
+        o2w = o2w.dot(RT_i)
 
-        print(RT)
-        print(o2w)
+        #print(RT)
+        #print(o2w)
+        o_Q3 =  = np.asarray(self.xyz3)
+        axis_x_o = unit_vector( o_Q2 - w_Q3 )
+        axis_z_o = unit_vector( o_Q2 - o_Q1 )
+        axis_y_o = np.cross(axis_x_o, axis_z_o)
+        RT_o = np.array([axis_x_o, axis_y_o, axis_z_o])
+        RT_o = np.asmatrix(RT_o)
+        RT_o_i = np.linalg.inv(RT_o)
+
+        o_axis = o_Q3.dot(RT_o_i)
+        o_axis[1] = o_axis[1] - 0.2
+
+        obj_c = o_axis,dot(RT_o)
+
+        obj_w = obj_c - w_Q2
+
+        obj2w = obj_w.dot(RT_i)
+        print(obj2w)
+
+
 
 
 
@@ -163,7 +185,7 @@ def aruco_fun():
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
     wheelchair = Wheelchair()
-    obj1 = obj(5,6)
+    obj1 = obj(5,6,11)
 
     if ids is not None and len(ids) > 0:
         wheelchair.wheelchair_dec(ids,corners,depth_img)

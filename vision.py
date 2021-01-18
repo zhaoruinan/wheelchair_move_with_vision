@@ -32,7 +32,7 @@ class Wheelchair():
                 self.num_xyz['num2'] = get_xyz(corners[id], depth_img)
                 #self.in_camera = True
         #if self.num_xyz['num1'] != None and self.num_xyz['num2'] != None :
-        print(self.num_xyz['num1'],self.num_xyz['num2'])
+        #print(self.num_xyz['num1'],self.num_xyz['num2'])
         
 def unit_vector(vector):
     """ Returns the unit vector of the vector."""
@@ -53,32 +53,62 @@ def rotation_matrix(axis, theta):
 
 
 class obj():
-    def __init__(self,num):
-        self.aruco_num = num
+    def __init__(self,num1,num2):
+        self.aruco_num1 = num1
+        self.aruco_num2 = num2
         self.in_camera = False
-        self.xyz = None
+        self.xyz1 = None
+        self.xyz2 = None
     def obj_dec(self,ids,corners,depth_img):
         for id in range(len(ids)):
-            if ids[id] == self.aruco_num:
-                self.xyz = get_xyz(corners[id], depth_img)
+            if ids[id] == self.aruco_num1:
+                self.xyz1 = get_xyz(corners[id], depth_img)
                 self.in_camera = True
-                print("obj",self.aruco_num,"xyz=",self.xyz)
-                break
+                #print("obj",self.aruco_num,"xyz=",self.xyz)
+            if ids[id] == self.aruco_num2:
+                self.xyz2 = get_xyz(corners[id], depth_img)
+                #self.in_camera = True
+                #print("obj",self.aruco_num,"xyz=",self.xyz)
+            
     def compute_obj2wheelchair_base(self,wheelchair):
-        print(self.xyz,wheelchair.num_xyz['num2'])
-        dis_obj2wheelchairnum2 =np.asarray(self.xyz - wheelchair.num_xyz['num2'])
-        axis_y_wheelchair_camera =np.asarray(wheelchair.num_xyz['num2'] - wheelchair.num_xyz['num1'])
-        print("dis_obj2wheelchairnum2 = ",dis_obj2wheelchairnum2)
-        print("axis_wheelchair_camera = ",axis_y_wheelchair_camera)
-        A = np.asarray([1, 0, 0])
-        B = axis_y_wheelchair_camera
-        print("A = ",A,"B = ",B)
-        axis = np.cross(A,B)
-        theta = angle_between(A,B)
-        print(theta)
-        rotation_matrix(axis, theta)
-        M0 = M(axis, theta)
-        print("obj2wheelchair",dis_obj2wheelchairnum2.dot(M0))
+        w_Q1 = np.asarray(wheelchair.num_xyz['num1'])
+        w_Q2 = np.asarray(wheelchair.num_xyz['num2'])
+        o_Q1 = np.asarray(self.xyz1)
+        o_Q2 = np.asarray(self.xyz2)
+        print(w_Q1,"\n",w_Q2,"\n",o_Q1,"\n",o_Q2)
+        axis_x_c = unit_vector( w_Q2 - w_Q1 )
+        axis_z_c = unit_vector( o_Q2 - o_Q1 )
+        axis_y_c = np.cross(axis_x_c, axis_z_c)
+        print("axis",axis_x_c, axis_y_c, axis_z_c)
+        RT = np.array([axis_x_c, axis_y_c, axis_z_c])
+        RT = np.asmatrix(RT)
+        RT = np.linalg.inv(RT)
+        o2w = o_Q2 - w_Q2
+        o2w = o2w.dot(RT)
+
+        print(RT)
+        print(o2w)
+
+
+
+        
+        
+        
+        
+        # print(self.xyz,wheelchair.num_xyz['num2'])
+        # dis_obj2wheelchairnum2 =np.asarray(self.xyz - wheelchair.num_xyz['num2'])
+        # axis_y_wheelchair_camera =np.asarray(wheelchair.num_xyz['num2'] - wheelchair.num_xyz['num1'])
+        # print("dis_obj2wheelchairnum2 = ",dis_obj2wheelchairnum2)
+        # print("axis_wheelchair_camera = ",axis_y_wheelchair_camera)
+        # A = np.asarray([1, 0, 0])
+        # B = axis_y_wheelchair_camera
+        # print("A = ",A,"B = ",B)
+        # axis = np.cross(A,B)
+        # theta = angle_between(A,B)
+        # print(theta)
+        # rotation_matrix(axis, theta)
+        # M0 = M(axis, theta)
+        # print("obj2wheelchair",dis_obj2wheelchairnum2.dot(M0))
         #wheelchair2obj = np.dot(Rv, dis_obj2wheelchairnum2)
         #print(wheelchair2obj)
 
@@ -133,7 +163,7 @@ def aruco_fun():
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
     wheelchair = Wheelchair()
-    obj1 = obj(5)
+    obj1 = obj(5,6)
 
     if ids is not None and len(ids) > 0:
         wheelchair.wheelchair_dec(ids,corners,depth_img)

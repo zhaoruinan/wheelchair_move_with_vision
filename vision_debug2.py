@@ -1,4 +1,4 @@
-from vision import get_obj2w
+from vision_2 import get_obj2w
 import time
 from threading import Timer
 import socket
@@ -15,9 +15,9 @@ class Data(Union):
 write_buffer = (c_char* 1024)()  
 def tcp_init():
 	global client, send_data
-	client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	#client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server_address = (HOST, PORT)
-	client.connect(server_address)
+	#client.connect(server_address)
 	send_data = Data()
 def tcp_com():
 
@@ -36,10 +36,10 @@ def tcp_com():
 	#send_data.int7Arr[0]=random.randrange(1,100)
 	send_data.float63dArr[0]=1.7
 	memmove( write_buffer, send_data.byte,1024)
-	client.sendall(write_buffer)
+	#client.sendall(write_buffer)
 	end = datetime.now()
-	labview_control = client.recv(40)
-	print(labview_control)
+	#labview_control = client.recv(40)
+	#print(labview_control)
 
 
 class RepeatingTimer(Timer): 

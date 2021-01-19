@@ -6,16 +6,7 @@ import actionlib       # Use the actionlib package for client and server
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 # Define Goal Points and orientations for TurtleBot in a list
-GoalPoints = [ [(0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)] ,
-[(0.4, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)],
-[(0.6, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)],
-[(0.6, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)],
-[(0.8, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)],
-[(1.2, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)],
-[(1.2, -0.2, 0.0), (0.0, 0.0, - 0.707, 0.707)],
- [(0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)] 
-]
-
+GoalPoint = [(0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)]
 
 # The function assign_goal initializes the goal_pose variable as a MoveBaseGoal action type.
 #
@@ -42,11 +33,10 @@ if __name__ == '__main__':
     client.wait_for_server()
     
 #       
-    for TBpose in GoalPoints:  
-        TBgoal = assign_goal(TBpose)   # For each goal point assign pose
-        client.send_goal(TBgoal)
-        client.wait_for_result()
-        
+    TBpose = GoalPoint  
+    TBgoal = assign_goal(TBpose)   # For each goal point assign pose
+    client.send_goal(TBgoal)
+    client.wait_for_result()
     
     if(client.get_state() == actionlib.GoalStatus.SUCCEEDED):
         rospy.loginfo("success")

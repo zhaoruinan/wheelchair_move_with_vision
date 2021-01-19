@@ -19,7 +19,7 @@ class ControlWheelchair():
         self.move_cmd = Twist()
         #move_cmd.linear.x = 0.3
         #move_cmd.angular.z = 0
-        self.task = "go_goal"
+        self.task = "stop"
         while not rospy.is_shutdown():
             if self.task == "go_goal":
                 print("go goal")
@@ -48,7 +48,10 @@ class ControlWheelchair():
             self.cmd_vel.publish(self.move_cmd)
             self.rate.sleep()
         for i in  range(60):
-            print(get_obj2w())
+            try:
+                print(get_obj2w())
+            except:
+                pass
             self.rate.sleep()
         self.task = "go_home"
     def go_home(self):

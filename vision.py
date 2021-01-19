@@ -10,7 +10,7 @@ from threading import Timer
 import math
 #from numpy import cross, eye, dot
 from scipy.linalg import expm, norm
-
+diff_w = np.asarray([0.01,-0.085,-0.1])
 def M(axis, theta):
     return expm(np.cross(np.eye(3), axis/norm(axis)*theta))
 
@@ -108,7 +108,7 @@ class obj():
 
         obj_w = obj_c - w_Q2
 
-        obj2w = obj_w.dot(RT_i)
+        obj2w = obj_w.dot(RT_i) + diff_w 
         print(obj2w)
         return obj2w
 
@@ -196,7 +196,9 @@ def aruco_fun_compute():
 
     if wheelchair.in_camera and obj1.in_camera:
         print("let us see the distance in camera")
+        pipe.stop()
         return obj1.compute_obj2wheelchair_base(wheelchair)
+    pipe.stop()
     return [0.0,0.0,0.0]
 
 
@@ -247,14 +249,10 @@ def aruco_fun():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
         #break
-# class RepeatingTimer(Timer): 
-#     def run(self):
-#         while not self.finished.is_set():
-#             self.function(*self.args, **self.kwargs)
-#             self.finished.wait(self.interval)
 def get_obj2w():
     aruco_init()
-    return aruco_fun_compute()
+    obj2w = aruco_fun_compute()
+    return obj2w
 
 #if __name__ =='__main__':
 #main()

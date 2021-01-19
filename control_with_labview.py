@@ -10,7 +10,7 @@ from geometry_msgs.msg import Twist
 global task
 task ="stop"
 import sys, select, termios, tty
-from vision import get_obj2w
+from vision_2 import get_obj2w
 import socket
 import random
 PORT = 8089
@@ -56,15 +56,18 @@ def tcp_com():
     if b[0]== 48:
         print(b[0],type(b[0]))
         task = "stop"
-    elif b[1]== 49:
-        print("googogogo")
-        task = "go_forward"
-    elif b[2]== 49:
-        task = "go_back"
-    elif b[3]== 49:
-        task = "turn_left"
-    elif b[4]== 49:
-        task = "turn_right"
+    else:
+        if b[1]== 49:
+            print("googogogo")
+            task = "go_forward"
+        elif b[2]== 49:
+            task = "go_back"
+        elif b[3]== 49:
+            task = "turn_left"
+        elif b[4]== 49:
+            task = "turn_right"
+        else:
+            task = "stop"
 
 
 
@@ -118,7 +121,7 @@ def tcp_com_while():
             tcp_com()
         except:
             pass
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         
 def control():
